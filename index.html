@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>uk-jobs-mcp — The standard MCP interface for UK recruitment data</title>
+  <meta name="description" content="An open MCP server giving any AI assistant structured access to UK job listings, market intelligence, and candidate availability." />
+  <meta property="og:title" content="uk-jobs-mcp" />
+  <meta property="og:description" content="The standard MCP interface for UK recruitment data." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --bg2:       #111111;
+      --bg3:       #1a1a1a;
+      --border:    #252525;
+      --border2:   #333333;
+      --text:      #e8e6e0;
+      --text2:     #888580;
+      --text3:     #555250;
+      --accent:    #e8c547;
+      --accent2:   #c4a030;
+      --green:     #4ade80;
+      --mono:      'DM Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Grid noise texture ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 56px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text2);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--bg) !important;
+      background: var(--accent);
+      padding: 6px 14px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.15s !important;
+    }
+
+    .nav-cta:hover { background: var(--accent2) !important; }
+
+    /* ── Main layout ── */
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    section {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding-top: 140px;
+      padding-bottom: 100px;
+      max-width: 860px;
+      margin: 0 auto;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      border: 1px solid rgba(74,222,128,0.25);
+      background: rgba(74,222,128,0.06);
+      padding: 5px 12px;
+      border-radius: 2px;
+      margin-bottom: 2rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text2);
+      font-weight: 300;
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      animation: fadeUp 0.5s 0.3s ease both;
+    }
+
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 13px;
+      background: var(--accent);
+      color: var(--bg);
+      padding: 10px 20px;
+      border-radius: 3px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+    .btn-secondary {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text2);
+      border: 1px solid var(--border2);
+      padding: 10px 20px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: color 0.15s, border-color 0.15s, transform 0.1s;
+    }
+
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--text3);
+      transform: translateY(-1px);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ── Why section ── */
+    .why {
+      padding: 80px 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .why blockquote {
+      border-left: 2px solid var(--accent);
+      padding-left: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .why blockquote p {
+      font-size: 1.05rem;
+      color: var(--text2);
+      font-weight: 300;
+      line-height: 1.8;
+      margin-bottom: 1rem;
+    }
+
+    .why blockquote p:last-child { margin-bottom: 0; }
+
+    .why blockquote strong {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .why-fields {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text2);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.25rem 1.5rem;
+      line-height: 2;
+      margin-bottom: 2rem;
+    }
+
+    .why-fields span {
+      color: var(--text);
+      border-bottom: 1px dashed var(--border2);
+      padding-bottom: 1px;
+    }
+
+    .why-sign {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .why-sign a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .why-sign a:hover { text-decoration: underline; }
+
+    /* ── Tools section ── */
+    .tools-section {
+      padding: 80px 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+      border-top: 1px solid var(--border);
+    }
+
+    .tools-section h2 {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .tools-section > p {
+      color: var(--text2);
+      font-size: 0.95rem;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+
+    .tool-group {
+      margin-bottom: 2.5rem;
+    }
+
+    .tool-group-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tool-group-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .badge-public   { color: var(--green); }
+    .badge-candidate { color: #60a5fa; }
+    .badge-recruiter { color: #f472b6; }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .tool-card {
+      background: var(--bg2);
+      padding: 1.1rem 1.25rem;
+      transition: background 0.15s;
+    }
+
+    .tool-card:hover { background: var(--bg3); }
+
+    .tool-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .tool-desc {
+      font-size: 13px;
+      color: var(--text2);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    /* ── Quick start ── */
+    .quickstart {
+      padding: 80px 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+      border-top: 1px solid var(--border);
+    }
+
+    .quickstart h2 {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .quickstart > p {
+      color: var(--text2);
+      font-size: 0.95rem;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 0 1.25rem;
+      margin-bottom: 2rem;
+      align-items: start;
+    }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid var(--accent2);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .step-content h3 {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .step-content p {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 10px;
+      font-weight: 300;
+    }
+
+    pre {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: var(--accent);
+    }
+
+    .comment { color: var(--text3); }
+    .key     { color: #60a5fa; }
+    .val     { color: #4ade80; }
+    .str     { color: var(--accent); }
+
+    /* ── Standard section ── */
+    .standard {
+      padding: 80px 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+      border-top: 1px solid var(--border);
+    }
+
+    .standard h2 {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .standard > p {
+      color: var(--text2);
+      font-size: 0.95rem;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+      max-width: 580px;
+    }
+
+    .standard-steps {
+      counter-reset: steps;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .standard-step {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .standard-step:last-child { border-bottom: none; }
+    .standard-step:hover { background: var(--bg3); }
+
+    .standard-step::before {
+      content: counter(steps, decimal-leading-zero);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      flex-shrink: 0;
+      margin-top: 2px;
+      min-width: 24px;
+    }
+
+    .standard-step p {
+      font-size: 14px;
+      color: var(--text2);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .standard-step p strong {
+      color: var(--text);
+      font-weight: 400;
+      display: block;
+      margin-bottom: 2px;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .footer-left a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer-left a:hover { text-decoration: underline; }
+
+    .footer-right {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-right a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-right a:hover { color: var(--text2); }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      .hero, .why, .tools-section, .quickstart, .standard { padding-left: 1rem; padding-right: 1rem; }
+      footer { flex-direction: column; padding: 2rem 1rem; }
+      .tool-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">uk-jobs-<span>mcp</span></a>
+    <ul class="nav-links">
+      <li><a href="#why">Why</a></li>
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#quickstart">Quick start</a></li>
+      <li><a href="#standard">Standard</a></li>
+      <li><a href="https://github.com/mccaigs/uk-jobs-mcp" class="nav-cta" target="_blank" rel="noopener">GitHub →</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- ── Hero ── -->
+    <div class="hero">
+      <div class="hero-badge">Open standard · MIT licence</div>
+      <h1>The <em>standard</em> MCP interface<br>for UK recruitment data.</h1>
+      <p class="hero-sub">
+        One open server. Any AI assistant. UK job listings, market rates,
+        and candidate availability — with a common, platform-neutral schema
+        any job board can implement.
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/mccaigs/uk-jobs-mcp" class="btn-primary" target="_blank" rel="noopener">View on GitHub</a>
+        <a href="#quickstart" class="btn-secondary">Quick start →</a>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- ── Why ── -->
+    <div class="why reveal" id="why">
+      <div class="section-label">// why this exists</div>
+
+      <div class="why-fields">
+        <span>Name.</span> &nbsp;<span>Location.</span> &nbsp;<span>Skills.</span> &nbsp;<span>Rate.</span> &nbsp;<span>Availability.</span> &nbsp;<span>Notice period.</span> &nbsp;<span>Preferred work mode.</span> &nbsp;<span>Contract or permanent.</span> &nbsp;<span>PAYE or outside IR35.</span>
+        <br /><br />
+        And every single platform asks for all of it, every time.
+      </div>
+
+      <blockquote>
+        <p>
+          It's 2026. AI assistants can book restaurants, manage calendars, and write code —
+          but somehow job hunting still means manually re-keying your entire professional history
+          into another identical form, on another identical platform, for the fifth time this week.
+        </p>
+        <p>
+          MCP changes that. A candidate should be able to <strong>store their profile once</strong>
+          and have any AI assistant read it and fill in any application form automatically.
+          No re-keying. No copy-pasting. No wasted afternoon.
+        </p>
+        <p>
+          But for that to work, job platforms need to speak a common language.
+          This is my attempt to define that language for the UK market.
+        </p>
+      </blockquote>
+
+      <div class="why-sign">
+        — <a href="https://www.linkedin.com/in/daverobertson4/" target="_blank" rel="noopener">David Robertson</a>
+      </div>
+    </div>
+
+    <!-- ── Tools ── -->
+    <div class="tools-section reveal" id="tools">
+      <div class="section-label">// tools</div>
+      <h2>Eight tools. One standard.</h2>
+      <p>Every tool returns <code>structuredContent</code> alongside text — clean typed data for AI hosts to work with directly.</p>
+
+      <div class="tool-group">
+        <div class="tool-group-label badge-public">Public — no auth required</div>
+        <div class="tool-grid">
+          <div class="tool-card">
+            <div class="tool-name">search_jobs</div>
+            <div class="tool-desc">Search UK jobs by keyword, location, type, seniority, and pay range</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">get_job_detail</div>
+            <div class="tool-desc">Full structured record for a job — skills, compensation, IR35, source URL</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">get_market_rates</div>
+            <div class="tool-desc">Current UK salary and day rate data by role, seniority, and region</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">get_skills_demand</div>
+            <div class="tool-desc">Most in-demand skills with job counts, avg rates, and trend direction</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-group-label badge-candidate">Candidate — candidate:read scope</div>
+        <div class="tool-grid">
+          <div class="tool-card">
+            <div class="tool-name">get_candidate_availability</div>
+            <div class="tool-desc">Read availability status, work preferences, and compensation expectations</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">update_availability</div>
+            <div class="tool-desc">Update availability status and available-from date</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <div class="tool-group-label badge-recruiter">Recruiter — recruiter:read / write scope</div>
+        <div class="tool-grid">
+          <div class="tool-card">
+            <div class="tool-name">post_job</div>
+            <div class="tool-desc">Create a new job listing with full UK field support including IR35</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">search_available_candidates</div>
+            <div class="tool-desc">Search candidates who have made availability public — anonymised results</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Quick start ── -->
+    <div class="quickstart reveal" id="quickstart">
+      <div class="section-label">// quick start</div>
+      <h2>Up and running in minutes.</h2>
+      <p>A hosted public instance is coming soon. For now, clone and run locally against your own data source.</p>
+
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Clone and install</h3>
+          <pre>git clone https://github.com/mccaigs/uk-jobs-mcp
+cd uk-jobs-mcp
+npm install</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Start the server</h3>
+          <pre>npm run dev
+<span class="comment"># MCP endpoint:  http://localhost:3000/mcp
+# Discovery:     http://localhost:3000/.well-known/mcp.json
+# Health:        http://localhost:3000/health</span></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Connect Claude Desktop</h3>
+          <p>Add to <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
+          <pre>{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"uk-jobs"</span>: {
+      <span class="key">"command"</span>: <span class="str">"npx"</span>,
+      <span class="key">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"uk-jobs-mcp"</span>]
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Test with the MCP Inspector</h3>
+          <pre>npm run inspector</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Standard ── -->
+    <div class="standard reveal" id="standard">
+      <div class="section-label">// implement the standard</div>
+      <h2>This is a schema, not just an implementation.</h2>
+      <p>
+        If you run a UK job board, ATS, or recruitment platform — you can implement
+        this same interface over your own data. Fork the repo, replace the stubs, deploy.
+      </p>
+
+      <div class="standard-steps">
+        <div class="standard-step">
+          <p><strong>Fork the repo</strong>The schema in <code>src/types.ts</code> is the canonical field definition for UK recruitment data exchange.</p>
+        </div>
+        <div class="standard-step">
+          <p><strong>Replace the stubs</strong>Each tool in <code>src/tools/</code> has a clearly labelled stub function. Wire it to your data store.</p>
+        </div>
+        <div class="standard-step">
+          <p><strong>Set your domain</strong>The <code>BASE_URL</code> env variable controls what the discovery endpoints advertise. <code>BASE_URL=https://your-domain.com npm start</code></p>
+        </div>
+        <div class="standard-step">
+          <p><strong>Open a PR</strong>Add yourself to the Built with section in the README. Contributions to the standard are welcome.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-left">
+      Built by <a href="https://www.linkedin.com/in/daverobertson4/" target="_blank" rel="noopener">David Robertson</a>
+      &nbsp;·&nbsp; MIT licence
+    </div>
+    <div class="footer-right">
+      <a href="https://github.com/mccaigs/uk-jobs-mcp" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP docs</a>
+      <a href="https://www.linkedin.com/in/daverobertson4/" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
