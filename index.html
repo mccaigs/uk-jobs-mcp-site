@@ -70,15 +70,16 @@
     }
 
     .nav-logo {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
+      display: flex;
+      align-items: center;
       text-decoration: none;
-      letter-spacing: -0.02em;
     }
 
-    .nav-logo span { color: var(--accent); }
+    .nav-logo img {
+      height: 32px;
+      width: auto;
+      display: block;
+    }
 
     .nav-links {
       display: flex;
@@ -604,19 +605,243 @@
     }
 
     /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav {
+        padding: 0 1rem;
+        height: 52px;
+      }
+
+      .nav-logo img {
+        height: 28px;
+      }
+
+      .nav-links {
+        gap: 1.5rem;
+      }
+
+      .nav-links a {
+        font-size: 11px;
+      }
+
+      .nav-cta {
+        font-size: 11px;
+        padding: 5px 12px;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+        line-height: 1.15;
+      }
+
+      .hero {
+        padding-top: 100px;
+        padding-bottom: 60px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+
+      .hero-sub {
+        font-size: 1rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+        text-align: center;
+        padding: 12px 20px;
+      }
+
+      .why, .tools-section, .quickstart, .standard {
+        padding: 60px 1.5rem;
+      }
+
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        grid-template-columns: 28px 1fr;
+        gap: 0 1rem;
+      }
+
+      pre {
+        font-size: 11px;
+        padding: 0.875rem 1rem;
+        overflow-x: auto;
+      }
+
+      code {
+        font-size: 11px;
+      }
+
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 2rem 1.5rem;
+      }
+
+      .footer-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
     @media (max-width: 600px) {
-      nav { padding: 0 1rem; }
-      .nav-links { display: none; }
-      .hero, .why, .tools-section, .quickstart, .standard { padding-left: 1rem; padding-right: 1rem; }
-      footer { flex-direction: column; padding: 2rem 1rem; }
-      .tool-grid { grid-template-columns: 1fr; }
+      nav {
+        padding: 0 1rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      h1 {
+        font-size: clamp(1.75rem, 9vw, 2.5rem);
+      }
+
+      .hero {
+        padding-top: 80px;
+        padding-bottom: 50px;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .hero-badge {
+        font-size: 10px;
+        padding: 4px 10px;
+      }
+
+      .hero-sub {
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+      }
+
+      .why, .tools-section, .quickstart, .standard {
+        padding: 50px 1rem;
+      }
+
+      .section-label {
+        font-size: 10px;
+      }
+
+      .why blockquote {
+        padding-left: 1rem;
+      }
+
+      .why blockquote p {
+        font-size: 0.95rem;
+      }
+
+      .why-fields {
+        font-size: 12px;
+        padding: 1rem;
+        line-height: 1.8;
+      }
+
+      .tools-section h2,
+      .quickstart h2,
+      .standard h2 {
+        font-size: 1.2rem;
+      }
+
+      .tool-card {
+        padding: 1rem;
+      }
+
+      .tool-name {
+        font-size: 11px;
+      }
+
+      .tool-desc {
+        font-size: 12px;
+      }
+
+      .step {
+        grid-template-columns: 24px 1fr;
+        gap: 0 0.875rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .step-num {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+      }
+
+      .step-content h3 {
+        font-size: 12px;
+      }
+
+      .step-content p {
+        font-size: 12px;
+      }
+
+      pre {
+        font-size: 10px;
+        padding: 0.75rem 0.875rem;
+      }
+
+      code {
+        font-size: 10px;
+        padding: 1px 5px;
+      }
+
+      .standard-step {
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      .standard-step p {
+        font-size: 13px;
+      }
+
+      .standard-step p strong {
+        font-size: 12px;
+      }
+
+      footer {
+        padding: 1.5rem 1rem;
+      }
+
+      .footer-left,
+      .footer-right a {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .hero-sub {
+        font-size: 0.9rem;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        font-size: 12px;
+        padding: 10px 16px;
+      }
+
+      pre {
+        font-size: 9px;
+        padding: 0.625rem 0.75rem;
+      }
     }
   </style>
 </head>
 <body>
 
   <nav>
-    <a href="/" class="nav-logo">uk-jobs-<span>mcp</span></a>
+    <a href="/" class="nav-logo">
+      <img src="jobs-mcp-logo.png" alt="uk-jobs-mcp" />
+    </a>
     <ul class="nav-links">
       <li><a href="#why">Why</a></li>
       <li><a href="#tools">Tools</a></li>
